@@ -2,44 +2,46 @@ package com.example.musicwidget.ui.theme
 
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.util.Log
 import android.widget.RemoteViews
 import com.example.musicwidget.R
 
-/**
- * Implementation of App Widget functionality.
- */
-class MusicWidget : AppWidgetProvider() {
-    override fun onUpdate(
-        context: Context,
-        appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
-    ) {
-        // There may be multiple widgets active, so update all of them
+class MusicWidgetProvider : AppWidgetProvider() {
+
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+
+        Log.d("MusicWidgetProvider", "Broadcast received: ${intent.action}")
+        val title = intent.getStringExtra("TITLE") ?: "Unknown Title"
+        val artist = intent.getStringExtra("ARTIST") ?: "Unknown Artist"1
+
+        Log.d("MusicWidgetProvider", "Updating widget with: $title - $artist")
+        updateWidget(context, title, artist)
+    }
+
+    private fun updateWidget(context: Context, title: String, artist: String) {
+        val views = RemoteViews(context.packageName, R.layout.music_widget)
+        views.setTextViewText(R.id.song_title, title)
+        views.setTextViewText(R.id.artist_name, artist)
+
+        val appWidgetManager = AppWidgetManager.getInstance(context)
+        val componentName = ComponentName(context, MusicWidgetProvider::class.java)
+        appWidgetManager.updateAppWidget(componentName, views)
+
+        // Force widget refresh
+        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetManager.getAppWidgetIds(componentName), R.id.song_title)
+
+        Log.d("MusicWidgetProvider", "Widget successfully updated with: $title - $artist")
+    }
+
+
+    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
         for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+            Log.d("MusicWidgetProvider", "Updating widget instance: $appWidgetId")
+            updateWidget(context, "Waiting for update...", "No data")
         }
     }
-
-    override fun onEnabled(context: Context) {
-        // Enter relevant functionality for when the first widget is created
-    }
-
-    override fun onDisabled(context: Context) {
-        // Enter relevant functionality for when the last widget is disabled
-    }
-}
-
-internal fun updateAppWidget(
-    context: Context,
-    appWidgetManager: AppWidgetManager,
-    appWidgetId: Int
-) {
-    val widgetText = context.getString(R.string.appwidget_text)
-    // Construct the RemoteViews object
-    val views = RemoteViews(context.packageName, R.layout.music_widget)
-    views.setTextViewText(R.id.appwidget_text, widgetText)
-
-    // Instruct the widget manager to update the widget
-    appWidgetManager.updateAppWidget(appWidgetId, views)
 }
