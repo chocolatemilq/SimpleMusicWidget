@@ -9,6 +9,10 @@ import android.graphics.Bitmap
 import android.util.Log
 import android.widget.RemoteViews
 import com.example.musicwidget.R
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 
 class MusicWidgetProvider : AppWidgetProvider() {
 
@@ -30,7 +34,7 @@ class MusicWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.artist_name, artist)
 
         if (albumArt != null) {
-            views.setImageViewBitmap(R.id.album_art, albumArt)
+            views.setImageViewBitmap(R.id.album_art, getRoundedCornerBitmap(albumArt, 16f))
         }
 
         val appWidgetManager = AppWidgetManager.getInstance(context)
@@ -41,6 +45,20 @@ class MusicWidgetProvider : AppWidgetProvider() {
         //appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetManager.getAppWidgetIds(componentName), R.id.song_title)
 
         //Log.d("MusicWidgetProvider", "Widget successfully updated with: $title - $artist")
+    }
+
+    private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Float): Bitmap {
+        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        val paint = Paint()
+        val path = Path()
+
+        val rect = RectF(0f, 0f, bitmap.width.toFloat(), bitmap.height.toFloat())
+        path.addRoundRect(rect, cornerRadius, cornerRadius, Path.Direction.CW)
+        canvas.clipPath(path)
+
+        canvas.drawBitmap(bitmap, 0f, 0f, paint)
+        return output
     }
 
 
