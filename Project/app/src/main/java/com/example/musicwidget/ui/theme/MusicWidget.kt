@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Log
 import android.widget.RemoteViews
 import com.example.musicwidget.R
@@ -13,6 +14,10 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import androidx.core.graphics.createBitmap
 
 class MusicWidgetProvider : AppWidgetProvider() {
 
@@ -34,7 +39,13 @@ class MusicWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.artist_name, artist)
 
         if (albumArt != null) {
-            views.setImageViewBitmap(R.id.album_art, getRoundedCornerBitmap(albumArt, 16f))
+            val newAlbumArt = Bitmap.createScaledBitmap(albumArt, 200, 200, true).copy(Bitmap.Config.ARGB_8888, true)
+            views.setImageViewBitmap(R.id.album_art, getRoundedCornerBitmap(newAlbumArt, 18f))
+        }
+        else {
+            val blankCover = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.music_note),200, 200, true)
+            val newBlankCover = blankCover.copy(Bitmap.Config.ARGB_8888, true)
+            views.setImageViewBitmap(R.id.album_art, getRoundedCornerBitmap(newBlankCover, 18f))
         }
 
         val appWidgetManager = AppWidgetManager.getInstance(context)
@@ -47,8 +58,8 @@ class MusicWidgetProvider : AppWidgetProvider() {
         //Log.d("MusicWidgetProvider", "Widget successfully updated with: $title - $artist")
     }
 
-    private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Float): Bitmap {
-        val output = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
+    private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Float): Bitmap? {
+        val output = createBitmap(bitmap.width, bitmap.height)
         val canvas = Canvas(output)
         val paint = Paint()
         val path = Path()
@@ -68,4 +79,31 @@ class MusicWidgetProvider : AppWidgetProvider() {
             updateWidget(context, "Waiting for update...", "No data", null)
         }
     }
+/*
+    fun saveImageToInternalStorage(context: Context, bitmap: Bitmap, fileName: String): String? {
+        var savedImagePath: String? = null
+        val file = File(context.filesDir, fileName)
+
+        try {
+            val outputStream = FileOutputStream(file)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream) // Save as PNG
+            outputStream.flush()
+            outputStream.close()
+            savedImagePath = file.absolutePath
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+
+        return savedImagePath
+    }
+
+    fun loadImageFromInternalStorage(context: Context, fileName: String): Bitmap? {
+        val file = File(context.filesDir, fileName)
+        return if (file.exists()) {
+            BitmapFactory.decodeFile(file.absolutePath)
+        } else {
+            null
+        }
+    }
+*/
 }
