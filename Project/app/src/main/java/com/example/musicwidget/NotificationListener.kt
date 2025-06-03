@@ -5,9 +5,13 @@ import android.service.notification.StatusBarNotification
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Icon
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 
 class NotificationListener : NotificationListenerService() {
+
+    private val handler = Handler(Looper.getMainLooper())
 
     override fun onNotificationPosted(sbn: StatusBarNotification) {
         val extras = sbn.notification.extras
@@ -15,8 +19,6 @@ class NotificationListener : NotificationListenerService() {
         // Extract title safely
         val titleObj = extras.get("android.title")
         val artistObj = extras.get("android.text")
-        val albumArtIcon = extras.getParcelable<Icon>("android.largeIcon")
-        val albumArtBitmap = getBitmapFromIcon(albumArtIcon)
 
         val title = when (titleObj) {
             is String -> titleObj
@@ -29,12 +31,9 @@ class NotificationListener : NotificationListenerService() {
             is CharSequence -> artistObj.toString()
             else -> "Unknown Artist"
         }
-
-        Log.d("NotificationListener", "Now Playing: $title - $artist") // Debugging log
-
-        if (title.isNotEmpty() && artist.isNotEmpty()) {
-            sendSongUpdate(title, artist, albumArtBitmap)
-        }
+        var albumArtIcon = extras.getParcelable<Icon>("android.largeIcon")
+        var albumArtBitmap = getBitmapFromIcon(albumArtIcon)
+        sendSongUpdate(title, artist, albumArtBitmap)
     }
 
     private fun getBitmapFromIcon(icon: Icon?): Bitmap? {
