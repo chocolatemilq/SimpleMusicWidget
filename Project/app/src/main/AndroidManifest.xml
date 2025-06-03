@@ -24,6 +24,7 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_info" />
+
         </receiver>
 
         <service

@@ -7,7 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Icon
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 
 class NotificationListener : NotificationListenerService() {
 
@@ -53,7 +52,6 @@ class NotificationListener : NotificationListenerService() {
     }
 
     private fun sendSongUpdate(title: String, artist: String, albumArt: Bitmap?) {
-        Log.d("NotificationListener", "Sending broadcast: $title - $artist")
         val intent = Intent("android.appwidget.action.APPWIDGET_UPDATE")
         intent.putExtra("TITLE", title)
         intent.putExtra("ARTIST", artist)

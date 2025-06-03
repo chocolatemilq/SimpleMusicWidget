@@ -7,18 +7,12 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import android.widget.RemoteViews
 import com.example.musicwidget.R
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
-import android.graphics.drawable.Icon
-import android.service.notification.StatusBarNotification
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import androidx.core.graphics.createBitmap
 
 class MusicWidgetProvider : AppWidgetProvider() {
@@ -37,9 +31,33 @@ class MusicWidgetProvider : AppWidgetProvider() {
     }
 
     private fun updateWidget(context: Context, title: String, artist: String, albumArt: Bitmap?) {
+        fun cutText(text: String): String {
+
+            // Remove trailing spaces and symbols to leave alphanumeric
+            fun removeTrailingSymbols(input: String): String {
+                var result = input
+                while (result.isNotEmpty() && !result.last().isLetterOrDigit()) {
+                    result = result.dropLast(1) // Remove the last character
+                }
+                return result
+            }
+
+            // Trim to 20 characters plus (...)
+            if (text.length > 20) {
+                val shiftedText = text.substring(0, 20)
+                val trimmedText = removeTrailingSymbols(shiftedText)
+                return "$trimmedText..."
+            }
+            else
+            {
+                return text
+            }
+        }
+
+
         val views = RemoteViews(context.packageName, R.layout.music_widget)
-        views.setTextViewText(R.id.song_title, title)
-        views.setTextViewText(R.id.artist_name, artist)
+        views.setTextViewText(R.id.song_title, cutText(title))
+        views.setTextViewText(R.id.artist_name, cutText(artist))
 
         if (albumArt != null) {
             val newAlbumArt = Bitmap.createScaledBitmap(albumArt, 200, 200, true).copy(Bitmap.Config.ARGB_8888, true)
@@ -48,7 +66,6 @@ class MusicWidgetProvider : AppWidgetProvider() {
         } else {
             if (lastKnownSongTitle == title) {
                 views.setImageViewBitmap(R.id.album_art, lastKnownAlbumArt)
-                Log.d("MusicWidgetProvider", "Using Last Known")
             } else {
                 // Set a default image if no album art is available
                 val blankCover = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.music_note), 200, 200, true)
@@ -61,14 +78,17 @@ class MusicWidgetProvider : AppWidgetProvider() {
         val componentName = ComponentName(context, MusicWidgetProvider::class.java)
         appWidgetManager.updateAppWidget(componentName, views)
 
-        Log.d("MusicWidgetProvider", "Last Known Song Title: $lastKnownSongTitle")
         lastKnownSongTitle = title
-        Log.d("MusicWidgetProvider", "Last Known Song Title: $lastKnownSongTitle")
     }
 
-
     private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Float): Bitmap? {
-        val output = createBitmap(bitmap.width, bitmap.height)
+        var output: Bitmap = createBitmap(bitmap.width, bitmap.height)
+        if(bitmap.height < bitmap.width) {
+            output = createBitmap(bitmap.height, bitmap.height)
+        }
+        else{
+            output = createBitmap(bitmap.width, bitmap.width)
+        }
         val canvas = Canvas(output)
         val paint = Paint()
         val path = Path()
@@ -80,39 +100,4 @@ class MusicWidgetProvider : AppWidgetProvider() {
         canvas.drawBitmap(bitmap, 0f, 0f, paint)
         return output
     }
-
-
-    override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        for (appWidgetId in appWidgetIds) {
-            //Log.d("MusicWidgetProvider", "Updating widget instance: $appWidgetId")
-            updateWidget(context, "Waiting for update...", "No data", null)
-        }
-    }
-/*
-    fun saveImageToInternalStorage(context: Context, bitmap: Bitmap, fileName: String): String? {
-        var savedImagePath: String? = null
-        val file = File(context.filesDir, fileName)
-
-        try {
-            val outputStream = FileOutputStream(file)
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream) // Save as PNG
-            outputStream.flush()
-            outputStream.close()
-            savedImagePath = file.absolutePath
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-
-        return savedImagePath
-    }
-
-    fun loadImageFromInternalStorage(context: Context, fileName: String): Bitmap? {
-        val file = File(context.filesDir, fileName)
-        return if (file.exists()) {
-            BitmapFactory.decodeFile(file.absolutePath)
-        } else {
-            null
-        }
-    }
-*/
 }
