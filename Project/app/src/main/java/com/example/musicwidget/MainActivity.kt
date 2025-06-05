@@ -15,9 +15,6 @@ import com.example.musicwidget.ui.theme.MusicWidgetTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-
-
-
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {

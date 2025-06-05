@@ -3,31 +3,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/app_widget_background"
-    android:gravity="top"
+    android:baselineAligned="false"
+    android:gravity="center"
     android:orientation="horizontal"
-    android:theme="@style/Theme.MusicWidget.AppWidgetContainer"
     android:padding="16dp"
-    android:baselineAligned="false">
-
-        <ImageView
-            android:id="@+id/album_art"
-            android:layout_width="75dp"
-            android:layout_height="75dp"
-            android:adjustViewBounds="false"
-            android:cropToPadding="false"
-            android:scaleType="centerCrop" />
-
+    android:theme="@style/Theme.MusicWidget.AppWidgetContainer">
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.25">
+    <ImageView
+        android:id="@+id/album_art"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:cropToPadding="false"
+        android:drawingCacheQuality="high"
+        android:elevation="10dp"
+        android:scaleType="fitCenter"/>
+    </FrameLayout>
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="3"
         android:orientation="vertical"
-        android:paddingLeft="15dp"
+        android:paddingLeft="30dp"
         android:paddingTop="5dp"
         android:paddingRight="15dp">
 
         <TextView
             android:id="@+id/song_title"
+            android:textStyle="bold"
+            android:textColor="?android:attr/textColorPrimaryNoDisable"
             android:layout_width="230dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -40,7 +47,6 @@
             android:layout_height="wrap_content"
             android:textSize="16sp"
             android:visibility="visible" />
-
     </LinearLayout>
 
 </LinearLayout>

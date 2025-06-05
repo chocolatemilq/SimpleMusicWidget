@@ -1,5 +1,6 @@
 package com.example.musicwidget.ui.theme
 
+import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
@@ -7,19 +8,26 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.widget.RemoteViews
-import com.example.musicwidget.R
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import android.os.Bundle
+import android.util.Log
+import android.view.KeyEvent
+import android.view.View
+import android.widget.RemoteViews
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.createBitmap
+import com.example.musicwidget.R
+
 
 class MusicWidgetProvider : AppWidgetProvider() {
 
     companion object {
-        private var lastKnownAlbumArt: Bitmap? = null
+        private lateinit var lastKnownAlbumArt: Bitmap
         private var lastKnownSongTitle: String = ""
+        private var lastKnownSongArtist: String = ""
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -43,8 +51,8 @@ class MusicWidgetProvider : AppWidgetProvider() {
             }
 
             // Trim to 20 characters plus (...)
-            if (text.length > 20) {
-                val shiftedText = text.substring(0, 20)
+            if (text.length > 15) {
+                val shiftedText = text.substring(0, 15)
                 val trimmedText = removeTrailingSymbols(shiftedText)
                 return "$trimmedText..."
             }
@@ -60,12 +68,12 @@ class MusicWidgetProvider : AppWidgetProvider() {
         views.setTextViewText(R.id.artist_name, cutText(artist))
 
         if (albumArt != null) {
-            val newAlbumArt = Bitmap.createScaledBitmap(albumArt, 200, 200, true).copy(Bitmap.Config.ARGB_8888, true)
+            val newAlbumArt = albumArt.copy(Bitmap.Config.ARGB_8888, true)
             views.setImageViewBitmap(R.id.album_art, getRoundedCornerBitmap(newAlbumArt, 18f))
-            lastKnownAlbumArt = getRoundedCornerBitmap(newAlbumArt.copy(Bitmap.Config.ARGB_8888, true), 18f)
+            lastKnownAlbumArt = newAlbumArt.copy(Bitmap.Config.ARGB_8888, true)
         } else {
-            if (lastKnownSongTitle == title) {
-                views.setImageViewBitmap(R.id.album_art, lastKnownAlbumArt)
+            if (lastKnownSongTitle == title && lastKnownSongArtist == artist) {
+                views.setImageViewBitmap(R.id.album_art, getRoundedCornerBitmap(lastKnownAlbumArt, 18f))
             } else {
                 // Set a default image if no album art is available
                 val blankCover = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(context.resources, R.drawable.music_note), 200, 200, true)
@@ -79,15 +87,14 @@ class MusicWidgetProvider : AppWidgetProvider() {
         appWidgetManager.updateAppWidget(componentName, views)
 
         lastKnownSongTitle = title
+        lastKnownSongArtist = artist
     }
 
     private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Float): Bitmap? {
-        var output: Bitmap = createBitmap(bitmap.width, bitmap.height)
-        if(bitmap.height < bitmap.width) {
-            output = createBitmap(bitmap.height, bitmap.height)
-        }
-        else{
-            output = createBitmap(bitmap.width, bitmap.width)
+        var output = if(bitmap.height <= bitmap.width) {
+            createBitmap(bitmap.height, bitmap.height)
+        } else{
+            createBitmap(bitmap.width, bitmap.width)
         }
         val canvas = Canvas(output)
         val paint = Paint()
@@ -100,4 +107,6 @@ class MusicWidgetProvider : AppWidgetProvider() {
         canvas.drawBitmap(bitmap, 0f, 0f, paint)
         return output
     }
+
+
 }
